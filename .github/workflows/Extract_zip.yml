@@ -1,0 +1,38 @@
+name: Extract ZIP archive
+
+on:
+  workflow_dispatch:
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: extract-zip
+
+      - name: Unzip archive into repository root
+        run: |
+          set -e
+          if [ ! -f "InspiredTax_App-main.zip" ]; then
+            echo "Archive not found: InspiredTax_App-main.zip"
+            ls -la
+            exit 1
+          fi
+          unzip -o "InspiredTax_App-main.zip" -d .
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No files changed after extraction."
+            exit 0
+          fi
+          git commit -m "Extract repository ZIP archive"
+          git push origin HEAD:extract-zip
